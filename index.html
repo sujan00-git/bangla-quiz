@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bangla Color Quiz</title>
+  <title>Bangla Quiz</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -14,308 +14,347 @@
       padding: 24px 16px;
     }
 
+    /* ── Shared card shell ── */
     .card {
-      max-width: 760px;
+      max-width: 780px;
       margin: 0 auto;
       background: #fff;
       border-radius: 20px;
       box-shadow: 0 24px 64px rgba(0,0,0,.35);
       overflow: hidden;
     }
-
-    /* ── Header ── */
     header {
       background: linear-gradient(135deg, #1a237e, #3949ab);
       color: #fff;
-      padding: 26px 30px 20px;
+      padding: 24px 30px 18px;
       text-align: center;
     }
-    header h1 { font-size: 1.75rem; letter-spacing: .5px; }
+    header h1 { font-size: 1.7rem; }
     header p  { margin-top: 6px; font-size: .9rem; opacity: .85; }
 
-    /* ── Table ── */
-    .table-wrap { padding: 16px 20px 8px; overflow-x: auto; }
+    /* ── Quiz-selection screen ── */
+    #screen-home  { display: block; }
+    #screen-quiz  { display: none;  }
 
+    .quiz-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 16px;
+      padding: 24px;
+    }
+    .quiz-card {
+      background: linear-gradient(135deg, #e8eaf6, #c5cae9);
+      border: 2px solid #9fa8da;
+      border-radius: 14px;
+      padding: 22px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: transform .15s, box-shadow .15s;
+      user-select: none;
+    }
+    .quiz-card:hover  { transform: translateY(-3px);
+                        box-shadow: 0 8px 24px rgba(0,0,0,.18); }
+    .quiz-card:active { transform: scale(.96); }
+    .quiz-card .icon  { font-size: 2.2rem; margin-bottom: 8px; }
+    .quiz-card .label { font-size: 1rem; font-weight: 700;
+                        color: #1a237e; line-height: 1.3; }
+    .quiz-card .count { font-size: .8rem; color: #555; margin-top: 4px; }
+
+    /* ── Quiz screen ── */
+    .quiz-header-row {
+      display: flex; align-items: center; gap: 12px; padding: 14px 20px 0;
+    }
+    #back-btn {
+      background: #e8eaf6; border: none; border-radius: 8px;
+      padding: 7px 14px; font-size: .9rem; font-weight: 700;
+      color: #1a237e; cursor: pointer;
+    }
+    #back-btn:hover { background: #c5cae9; }
+    #quiz-title { font-size: 1.1rem; font-weight: 700; color: #1a237e; }
+
+    .table-wrap { padding: 12px 18px 8px; overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; }
-
     thead tr { background: #283593; color: #fff; }
-    thead th { padding: 10px 14px; text-align: left; font-size: .85rem;
-               font-weight: 600; white-space: nowrap; }
-
-    tbody tr { transition: background .25s; }
+    thead th { padding: 9px 13px; text-align: left;
+               font-size: .85rem; white-space: nowrap; }
     tbody tr:nth-child(odd)  { background: #fff; }
     tbody tr:nth-child(even) { background: #f3f4fb; }
-
-    td { padding: 10px 14px; vertical-align: middle; }
+    tbody tr { transition: background .25s; }
+    td { padding: 9px 13px; vertical-align: middle; }
     td.sl      { text-align: center; font-weight: 700; color: #555;
-                 font-size: .95rem; width: 48px; }
+                 width: 46px; font-size: .95rem; }
     td.english { font-size: 1rem; font-weight: 500; }
-    td.bangla  { font-size: 1.1rem; font-weight: 700; color: #1a237e;
-                 letter-spacing: .5px; }
-    td.answer  { width: 90px; }
+    td.bangla  { font-size: 1.1rem; font-weight: 700;
+                 color: #1a237e; letter-spacing: .4px; }
+    td.answer  { width: 88px; }
     td.answer input {
-      width: 68px; padding: 6px 8px; border: 2px solid #bbb;
+      width: 66px; padding: 6px 8px; border: 2px solid #bbb;
       border-radius: 8px; font-size: 1rem; text-align: center;
-      transition: border-color .2s, background .25s;
-      -moz-appearance: textfield;
+      -moz-appearance: textfield; transition: border-color .2s;
     }
     td.answer input::-webkit-outer-spin-button,
     td.answer input::-webkit-inner-spin-button { -webkit-appearance: none; }
     td.answer input:focus { outline: none; border-color: #3949ab; }
     td.verdict { font-size: .9rem; font-weight: 700; white-space: nowrap; }
 
-    /* ── Row state colours ── */
-    tr.correct td          { background: #e8f5e9 !important; }
-    tr.correct td.answer input { background: #c8e6c9; border-color: #43a047; }
-    tr.correct td.verdict  { color: #2e7d32; }
-
-    tr.wrong td            { background: #ffebee !important; }
+    tr.correct td            { background: #e8f5e9 !important; }
+    tr.correct td.answer input{ background: #c8e6c9; border-color: #43a047; }
+    tr.correct td.verdict    { color: #2e7d32; }
+    tr.wrong td              { background: #ffebee !important; }
     tr.wrong td.answer input { background: #ffcdd2; border-color: #e53935; }
-    tr.wrong td.verdict    { color: #b71c1c; }
-
-    tr.blank td            { background: #fff8e1 !important; }
+    tr.wrong td.verdict      { color: #b71c1c; }
+    tr.blank td              { background: #fff8e1 !important; }
     tr.blank td.answer input { background: #fff9c4; border-color: #ffc107; }
-    tr.blank td.verdict    { color: #e65100; }
+    tr.blank td.verdict      { color: #e65100; }
 
-    /* ── Footer ── */
     .footer {
-      background: #f0f2ff;
-      border-top: 1px solid #e0e0e0;
-      padding: 14px 22px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
+      background: #f0f2ff; border-top: 1px solid #e0e0e0;
+      padding: 13px 20px;
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
     }
-
-    button {
-      padding: 10px 22px;
-      border: none;
-      border-radius: 10px;
-      font-size: .95rem;
-      font-weight: 700;
-      cursor: pointer;
+    button.action {
+      padding: 9px 20px; border: none; border-radius: 10px;
+      font-size: .95rem; font-weight: 700; cursor: pointer;
       transition: filter .15s, transform .1s;
     }
-    button:hover  { filter: brightness(1.1); }
-    button:active { transform: scale(.96); }
-
+    button.action:hover  { filter: brightness(1.1); }
+    button.action:active { transform: scale(.96); }
     #grade-btn { background: #2e7d32; color: #fff; }
     #new-btn   { background: #1565c0; color: #fff; }
-
-    #score {
-      margin-left: auto;
-      font-size: 1.05rem;
-      font-weight: 800;
-    }
+    #score { margin-left: auto; font-size: 1.05rem; font-weight: 800; }
     #score.perfect { color: #2e7d32; }
     #score.great   { color: #1565c0; }
     #score.ok      { color: #e65100; }
     #score.low     { color: #b71c1c; }
 
-    /* ── Celebration overlay ── */
-    #confetti-msg {
-      display: none;
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,.45);
-      z-index: 99;
-      align-items: center;
-      justify-content: center;
+    /* ── Celebration ── */
+    #overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.45); z-index: 99;
+      align-items: center; justify-content: center;
     }
-    #confetti-msg.show { display: flex; }
+    #overlay.show { display: flex; }
     .celebrate-box {
-      background: #fff;
-      border-radius: 20px;
-      padding: 40px 50px;
-      text-align: center;
+      background: #fff; border-radius: 20px;
+      padding: 40px 50px; text-align: center;
       box-shadow: 0 16px 48px rgba(0,0,0,.4);
       animation: pop .3s ease;
     }
     @keyframes pop { from { transform: scale(.7); opacity: 0; }
                      to   { transform: scale(1);  opacity: 1; } }
-    .celebrate-box .star { font-size: 3.5rem; }
-    .celebrate-box h2 { font-size: 1.8rem; color: #2e7d32; margin: 12px 0 6px; }
-    .celebrate-box p  { color: #555; margin-bottom: 20px; }
+    .celebrate-box .star { font-size: 3.2rem; }
+    .celebrate-box h2 { font-size: 1.7rem; color: #2e7d32; margin: 10px 0 6px; }
+    .celebrate-box p  { color: #555; margin-bottom: 18px; }
     .celebrate-box button { background: #2e7d32; color: #fff;
-                             padding: 10px 28px; font-size: 1rem; }
+      padding: 10px 28px; font-size: 1rem; border: none;
+      border-radius: 10px; cursor: pointer; font-weight: 700; }
 
     @media (max-width: 520px) {
-      header h1   { font-size: 1.3rem; }
-      td          { padding: 8px 8px; font-size: .85rem; }
-      td.bangla   { font-size: .95rem; }
-      td.answer input { width: 54px; }
+      header h1 { font-size: 1.3rem; }
+      td { padding: 7px 8px; font-size: .85rem; }
+      td.bangla { font-size: .95rem; }
+      td.answer input { width: 52px; }
+      .quiz-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
     }
   </style>
 </head>
 <body>
 
-<div class="card">
+<!-- ── Home screen ── -->
+<div id="screen-home" class="card">
   <header>
-    <h1>Bangla Color Quiz</h1>
-    <p>Look at each Bangla word — type the <strong>Serial #</strong> of the English color it means</p>
+    <h1>Bangla Quiz</h1>
+    <p>Choose a quiz to start</p>
   </header>
+  <div class="quiz-grid" id="quiz-grid"></div>
+</div>
 
+<!-- ── Quiz screen ── -->
+<div id="screen-quiz" class="card">
+  <header>
+    <h1>Bangla Quiz</h1>
+    <p>Type the Serial # whose English word matches the Bangla word shown</p>
+  </header>
+  <div class="quiz-header-row">
+    <button id="back-btn" onclick="goHome()">&#8592; Back</button>
+    <span id="quiz-title"></span>
+  </div>
   <div class="table-wrap">
     <table>
       <thead>
         <tr>
-          <th>#</th>
-          <th>English Word</th>
-          <th>Bangla Word</th>
-          <th>Your Answer</th>
-          <th></th>
+          <th>#</th><th>English Word</th>
+          <th>Bangla Word</th><th>Your Answer</th><th></th>
         </tr>
       </thead>
       <tbody id="quiz-body"></tbody>
     </table>
   </div>
-
   <div class="footer">
-    <button id="grade-btn" onclick="grade()">Grade My Answers</button>
-    <button id="new-btn"   onclick="newQuiz()">New Quiz</button>
+    <button class="action" id="grade-btn" onclick="grade()">Grade My Answers</button>
+    <button class="action" id="new-btn"   onclick="newQuiz()">New Quiz</button>
     <span id="score"></span>
   </div>
 </div>
 
-<!-- Perfect-score celebration -->
-<div id="confetti-msg">
+<!-- ── Celebration overlay ── -->
+<div id="overlay">
   <div class="celebrate-box">
     <div class="star">&#11088;</div>
     <h2>Perfect Score!</h2>
-    <p>You got all 13 correct — amazing work!</p>
-    <button onclick="closeModal(); newQuiz()">Play Again</button>
+    <p id="celebrate-msg">You got everything right!</p>
+    <button onclick="closeOverlay(); newQuiz()">Play Again</button>
   </div>
 </div>
 
 <script>
-  // ── Answer key — correct English → Bangla pairs ──────────────────────────
-  // Teachers: update this list to change quiz words.
-  const WORDS = [
-    { serial:  1, english: "Black",  bangla: "KALO"    },
-    { serial:  2, english: "Blue",   bangla: "NIL"     },
-    { serial:  3, english: "Brown",  bangla: "BADAMI"  },
-    { serial:  4, english: "Golden", bangla: "SHONALI" },
-    { serial:  5, english: "Silver", bangla: "RUPALI"  },
-    { serial:  6, english: "Green",  bangla: "SHOBUJ"  },
-    { serial:  7, english: "Red",    bangla: "LAL"     },
-    { serial:  8, english: "Yellow", bangla: "HOLUD"   },
-    { serial:  9, english: "Pink",   bangla: "GOLAPI"  },
-    { serial: 10, english: "White",  bangla: "SHADA"   },
-    { serial: 11, english: "Violet", bangla: "BEGUNI"  },
-    { serial: 12, english: "Color",  bangla: "RONG"    },
-    { serial: 13, english: "Grey",   bangla: "DHUSHOR" },
-  ];
+// ── Quiz data (generated from ODS files) ────────────────────────────────
+const QUIZZES = [{"id": "Color", "title": "Name your Colors", "sheet": "Color", "words": [{"serial": 1, "english": "Black", "bangla": "KALO"}, {"serial": 2, "english": "Blue", "bangla": "NIL"}, {"serial": 3, "english": "Brown", "bangla": "BADAMI"}, {"serial": 4, "english": "Golden", "bangla": "SHONALI"}, {"serial": 5, "english": "Silver", "bangla": "RUPALI"}, {"serial": 6, "english": "Green", "bangla": "SHOBUJ"}, {"serial": 7, "english": "Red", "bangla": "LAL"}, {"serial": 8, "english": "Yellow", "bangla": "HOLUD"}, {"serial": 9, "english": "Pink", "bangla": "GOLAPI"}, {"serial": 10, "english": "White", "bangla": "SHADA"}, {"serial": 11, "english": "Violet", "bangla": "BEGUNI"}, {"serial": 12, "english": "Color", "bangla": "RONG"}, {"serial": 13, "english": "Grey", "bangla": "DHUSHOR"}]}, {"id": "Fruits", "title": "Name your Fruits", "sheet": "Fruits", "words": [{"serial": 1, "english": "Coconut", "bangla": "Narikel"}, {"serial": 2, "english": "Watermelon", "bangla": "Tormuj"}, {"serial": 3, "english": "Papaya", "bangla": "Pepe"}, {"serial": 4, "english": "Pears", "bangla": "Nashpati"}, {"serial": 5, "english": "Pineapple", "bangla": "Anarosh"}, {"serial": 6, "english": "Mango", "bangla": "Aam"}, {"serial": 7, "english": "Guava", "bangla": "Peyara"}, {"serial": 8, "english": "Jack Fruit", "bangla": "Kathal"}, {"serial": 9, "english": "Orange", "bangla": "Komola"}, {"serial": 10, "english": "Grape", "bangla": "Angur"}]}, {"id": "Body_parts", "title": "Name your Body parts", "sheet": "Body_parts", "words": [{"serial": 1, "english": "Belly", "bangla": "PET"}, {"serial": 2, "english": "Blood", "bangla": "ROKTO"}, {"serial": 3, "english": "Head", "bangla": "MATHA"}, {"serial": 4, "english": "Eye", "bangla": "CHOK"}, {"serial": 5, "english": "Chin", "bangla": "CHIBUK"}, {"serial": 6, "english": "Ear", "bangla": "KAAN"}, {"serial": 7, "english": "Foot", "bangla": "PAYER PATA"}, {"serial": 8, "english": "Leg", "bangla": "PA"}, {"serial": 9, "english": "Hair", "bangla": "CHUL"}, {"serial": 10, "english": "Knee", "bangla": "HATU"}, {"serial": 11, "english": "Tooth", "bangla": "DAAT"}, {"serial": 12, "english": "Nail", "bangla": "NOKH"}, {"serial": 13, "english": "Skin", "bangla": "CHAMRA"}, {"serial": 14, "english": "Throat", "bangla": "GOLA"}, {"serial": 15, "english": "Forehead", "bangla": "KOPAL"}, {"serial": 16, "english": "Lip", "bangla": "THOAT"}, {"serial": 17, "english": "Tongue", "bangla": "JIBBA"}]}, {"id": "Fish_and_Meat", "title": "Identify Fish and Meat", "sheet": "Fish_and_Meat", "words": [{"serial": 1, "english": "Fish", "bangla": "Mach"}, {"serial": 2, "english": "Meat", "bangla": "Mangsho"}, {"serial": 3, "english": "Mutton", "bangla": "Khashir Mangsho"}, {"serial": 4, "english": "Chicken", "bangla": "Murgi"}, {"serial": 5, "english": "Catfish", "bangla": "Magur or Shing mach"}, {"serial": 6, "english": "Shrimp", "bangla": "Chingri Mach"}, {"serial": 7, "english": "Crab", "bangla": "Kakra"}, {"serial": 8, "english": "Fish Egg", "bangla": "Macher Dim"}, {"serial": 9, "english": "Hilsha", "bangla": "Elish Mach"}, {"serial": 10, "english": "Pomfret", "bangla": "Rupchada Mach"}, {"serial": 11, "english": "Small Fish", "bangla": "Choto Mach"}]}, {"id": "Mosholla", "title": "Spieces to ascertain", "sheet": "Mosholla", "words": [{"serial": 1, "english": "Green Chilli", "bangla": "Kacha Morich"}, {"serial": 2, "english": "red Chilli", "bangla": "Lal Morich"}, {"serial": 3, "english": "Pepper", "bangla": "Golmorich"}, {"serial": 4, "english": "Garlic", "bangla": "Roshun"}, {"serial": 5, "english": "Ginger", "bangla": "Ada"}, {"serial": 6, "english": "Onion", "bangla": "Piaz"}, {"serial": 7, "english": "Turmeric", "bangla": "Holud"}, {"serial": 8, "english": "Cumin", "bangla": "Jeera"}, {"serial": 9, "english": "Bay Leaf", "bangla": "Tej Pata"}, {"serial": 10, "english": "Cinnamon", "bangla": "Daruchini"}, {"serial": 11, "english": "Coriander", "bangla": "Dhona"}, {"serial": 12, "english": "Cardamon", "bangla": "Elachi"}, {"serial": 13, "english": "Mint", "bangla": "Pudina"}, {"serial": 14, "english": "Cilantro", "bangla": "Dhona Pata"}]}, {"id": "Family", "title": "Family Member", "sheet": "Family", "words": [{"serial": 1, "english": "Mother", "bangla": "Ma"}, {"serial": 2, "english": "Father", "bangla": "Baba"}, {"serial": 3, "english": "Aunt", "bangla": "Khala, Mami, Phupi, Chachi"}, {"serial": 4, "english": "Uncle", "bangla": "Mama, Chacha, Phupa, Kaka, Khalu"}, {"serial": 5, "english": "Brother", "bangla": "Bhai, Dada"}, {"serial": 6, "english": "Sister", "bangla": "Bon, Didi"}, {"serial": 7, "english": "Niece", "bangla": "Bhatiji, Bhagni"}, {"serial": 8, "english": "Nephew", "bangla": "Bhatija"}, {"serial": 9, "english": "Grandson", "bangla": "Nati"}, {"serial": 10, "english": "Granddaughter", "bangla": "Natni"}, {"serial": 11, "english": "Grandmother", "bangla": "Nani, Dadi"}, {"serial": 12, "english": "Grandfather", "bangla": "Dada, Nana"}, {"serial": 13, "english": "Friend", "bangla": "Bondhu"}]}, {"id": "Vegetables", "title": "Vegetables", "sheet": "Vegetables", "words": [{"serial": 1, "english": "Carrot", "bangla": "Gajor"}, {"serial": 2, "english": "Cauliflower", "bangla": "Fulkopi"}, {"serial": 3, "english": "Eggplant", "bangla": "Begun"}, {"serial": 4, "english": "Cabbage", "bangla": "Badha Kopi"}, {"serial": 5, "english": "Spinach", "bangla": "Palong Shakh"}, {"serial": 6, "english": "Okra", "bangla": "Dherosh"}, {"serial": 7, "english": "Potato", "bangla": "Alu"}, {"serial": 8, "english": "Corn", "bangla": "Bhutta"}, {"serial": 9, "english": "Squash", "bangla": "Kodu or Lau"}, {"serial": 10, "english": "Pumpkin", "bangla": "Kumra"}, {"serial": 11, "english": "Mushroom", "bangla": "Banger Chata"}]}];
 
-  let answerKey = []; // answerKey[i] = correct serial for quiz row i (hidden)
+// ── State ────────────────────────────────────────────────────────────────
+let currentQuiz = null;
+let answerKey   = [];
 
-  // Fisher-Yates shuffle
-  function shuffle(arr) {
-    const a = [...arr];
-    for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [a[i], a[j]] = [a[j], a[i]];
-    }
-    return a;
-  }
+// ── Home screen ──────────────────────────────────────────────────────────
+const ICONS = ["🎨","📚","🌿","⭐","🏠","🐾","🎵","🌈","🍎","🔢","🌍","🦋","🎯"];
 
-  // Shuffle so no Bangla word lands on its own row (derangement)
-  function derange(arr) {
-    let result, tries = 0;
-    do {
-      result = shuffle(arr);
-      tries++;
-    } while (tries < 50 && result.some((w, i) => w.serial === arr[i].serial));
-    return result;
-  }
+function buildHome() {
+  const grid = document.getElementById('quiz-grid');
+  grid.innerHTML = '';
+  QUIZZES.forEach((q, i) => {
+    const card = document.createElement('div');
+    card.className = 'quiz-card';
+    card.innerHTML = `
+      <div class="icon">${ICONS[i % ICONS.length]}</div>
+      <div class="label">${q.title}</div>
+      <div class="count">${q.words.length} words</div>`;
+    card.onclick = () => startQuiz(q);
+    grid.appendChild(card);
+  });
+}
 
-  function newQuiz() {
-    closeModal();
-    const shuffled = derange(WORDS);
-    answerKey = shuffled.map(w => w.serial); // hidden from student
+function goHome() {
+  document.getElementById('screen-quiz').style.display = 'none';
+  document.getElementById('screen-home').style.display = 'block';
+  closeOverlay();
+}
 
-    const tbody = document.getElementById('quiz-body');
-    tbody.innerHTML = '';
-    document.getElementById('score').textContent = '';
-    document.getElementById('score').className = '';
-
-    WORDS.forEach((word, i) => {
-      const tr = document.createElement('tr');
-      tr.id = `row-${i}`;
-      tr.innerHTML = `
-        <td class="sl">${word.serial}</td>
-        <td class="english">${word.english}</td>
-        <td class="bangla">${shuffled[i].bangla}</td>
-        <td class="answer">
-          <input type="number" id="ans-${i}" min="1" max="${WORDS.length}"
-            placeholder="#"
-            onkeydown="if(event.key==='Enter'||event.key==='Tab'){event.preventDefault();focusNext(${i});}"
-          >
-        </td>
-        <td class="verdict" id="v-${i}"></td>
-      `;
-      tbody.appendChild(tr);
-    });
-
-    document.getElementById('ans-0').focus();
-  }
-
-  function focusNext(i) {
-    const next = document.getElementById(`ans-${i + 1}`);
-    if (next) next.focus(); else grade();
-  }
-
-  function grade() {
-    let correct = 0;
-    const total = WORDS.length;
-
-    WORDS.forEach((_, i) => {
-      const input   = document.getElementById(`ans-${i}`);
-      const verdict = document.getElementById(`v-${i}`);
-      const row     = document.getElementById(`row-${i}`);
-      const val     = input.value.trim();
-      const student = parseInt(val);
-      const right   = answerKey[i];
-
-      row.className = '';
-
-      if (!val) {
-        row.classList.add('blank');
-        verdict.textContent = `→ ${right}`;
-      } else if (student === right) {
-        correct++;
-        row.classList.add('correct');
-        verdict.textContent = '✓';
-      } else {
-        row.classList.add('wrong');
-        verdict.textContent = `✗ → ${right}`;
-      }
-    });
-
-    const pct = Math.round(correct / total * 100);
-    const scoreEl = document.getElementById('score');
-
-    if (pct === 100) {
-      scoreEl.textContent = `Perfect! ${correct}/${total} ★`;
-      scoreEl.className = 'perfect';
-      setTimeout(() => document.getElementById('confetti-msg').classList.add('show'), 400);
-    } else if (pct >= 80) {
-      scoreEl.textContent = `Great!  ${correct}/${total} (${pct}%)`;
-      scoreEl.className = 'great';
-    } else if (pct >= 60) {
-      scoreEl.textContent = `Good!  ${correct}/${total} (${pct}%)`;
-      scoreEl.className = 'ok';
-    } else {
-      scoreEl.textContent = `${correct}/${total} (${pct}%) — Keep trying!`;
-      scoreEl.className = 'low';
-    }
-  }
-
-  function closeModal() {
-    document.getElementById('confetti-msg').classList.remove('show');
-  }
-
-  // Start on load
+// ── Quiz logic ───────────────────────────────────────────────────────────
+function startQuiz(quiz) {
+  currentQuiz = quiz;
+  document.getElementById('screen-home').style.display = 'none';
+  document.getElementById('screen-quiz').style.display = 'block';
+  document.getElementById('quiz-title').textContent = quiz.title;
   newQuiz();
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function derange(arr) {
+  let result, tries = 0;
+  do {
+    result = shuffle(arr);
+    tries++;
+  } while (tries < 50 && result.some((w, i) => w.serial === arr[i].serial));
+  return result;
+}
+
+function newQuiz() {
+  closeOverlay();
+  const words    = currentQuiz.words;
+  const shuffled = derange(words);
+  answerKey      = shuffled.map(w => w.serial);   // hidden
+
+  const tbody = document.getElementById('quiz-body');
+  tbody.innerHTML = '';
+  document.getElementById('score').textContent = '';
+  document.getElementById('score').className   = '';
+
+  words.forEach((word, i) => {
+    const tr = document.createElement('tr');
+    tr.id = `row-${i}`;
+    tr.innerHTML = `
+      <td class="sl">${word.serial}</td>
+      <td class="english">${word.english}</td>
+      <td class="bangla">${shuffled[i].bangla}</td>
+      <td class="answer">
+        <input type="number" id="ans-${i}" min="1" max="${words.length}"
+          placeholder="#"
+          onkeydown="if(event.key==='Enter'||event.key==='Tab'){
+            event.preventDefault(); focusNext(${i}); }">
+      </td>
+      <td class="verdict" id="v-${i}"></td>`;
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('ans-0').focus();
+}
+
+function focusNext(i) {
+  const next = document.getElementById(`ans-${i + 1}`);
+  if (next) next.focus(); else grade();
+}
+
+function grade() {
+  const total = currentQuiz.words.length;
+  let correct = 0;
+
+  currentQuiz.words.forEach((_, i) => {
+    const input   = document.getElementById(`ans-${i}`);
+    const verdict = document.getElementById(`v-${i}`);
+    const row     = document.getElementById(`row-${i}`);
+    const val     = input.value.trim();
+    const student = parseInt(val);
+    const right   = answerKey[i];
+
+    row.className = '';
+    if (!val) {
+      row.classList.add('blank');
+      verdict.textContent = `→ ${right}`;
+    } else if (student === right) {
+      correct++;
+      row.classList.add('correct');
+      verdict.textContent = '✓';
+    } else {
+      row.classList.add('wrong');
+      verdict.textContent = `✗ → ${right}`;
+    }
+  });
+
+  const pct = Math.round(correct / total * 100);
+  const el  = document.getElementById('score');
+
+  if (pct === 100) {
+    el.textContent = `Perfect! ${correct}/${total} ★`;
+    el.className   = 'perfect';
+    document.getElementById('celebrate-msg').textContent =
+      `You got all ${total} correct — amazing!`;
+    setTimeout(() => document.getElementById('overlay').classList.add('show'), 400);
+  } else if (pct >= 80) {
+    el.textContent = `Great!  ${correct}/${total} (${pct}%)`;
+    el.className   = 'great';
+  } else if (pct >= 60) {
+    el.textContent = `Good!  ${correct}/${total} (${pct}%)`;
+    el.className   = 'ok';
+  } else {
+    el.textContent = `${correct}/${total} (${pct}%) — Keep trying!`;
+    el.className   = 'low';
+  }
+}
+
+function closeOverlay() {
+  document.getElementById('overlay').classList.remove('show');
+}
+
+// ── Boot ─────────────────────────────────────────────────────────────────
+buildHome();
 </script>
 </body>
 </html>
